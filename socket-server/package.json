@@ -1,0 +1,14 @@
+{
+  "name": "quickmatch-socket",
+  "private": true,
+  "scripts": {
+    "start": "node socketServer.js",
+    "dev": "node socketServer.js",
+    "lint": "echo \"No linter configured\""
+  },
+  "dependencies": {
+    "socket.io": "^4.7.0",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.11.0"
+  }
+}

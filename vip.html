@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP - QuickMatch</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .vip-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .vip-hero {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(102,126,234,0.1));
+            border-radius: 20px;
+        }
+
+        .vip-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #FF6B6B, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .vip-hero p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card.popular {
+            border: 3px solid #FF6B6B;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #FF6B6B, #ff5252);
+            color: white;
+            padding: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .pricing-card.popular:hover {
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #FF6B6B;
+        }
+
+        .plan-period {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.5rem 0;
+            color: #555;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .plan-features li::before {
+            content: '✓';
+            color: #4CAF50;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .btn-plan {
+            background: linear-gradient(135deg, #FF6B6B, #ff5252);
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+        }
+
+        .btn-plan:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255,107,107,0.4);
+        }
+
+        .benefits-section {
+            margin-bottom: 4rem;
+        }
+
+        .benefits-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .benefit-item h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .benefit-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .faq-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1.5rem 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .faq-toggle {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .testimonial-section {
+            margin-bottom: 4rem;
+        }
+
+        .testimonial-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .testimonial-role {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .vip-hero h1 {
+                font-size: 2rem;
+            }
+
+            .vip-hero p {
+                font-size: 1rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vip-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="heart">❤️</span> QuickMatch
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+                <button class="menu-btn" onclick="toggleMenu()" title="Menu">☰</button>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">🏠 Home</a>
+                <a href="register.html">📝 Register</a>
+                <a href="about.html">ℹ️ About</a>
+                <a href="vip.html">⭐ VIP</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="vip-container">
+        <section class="vip-hero">
+            <h1>Unlock VIP Experience</h1>
+            <p>Get premium features, priority matching, and enhanced visibility. Join thousands of successful daters who found love with VIP.</p>
+        </section>
+
+        <section class="pricing-grid">
+            <div class="pricing-card">
+                <div class="plan-name">Basic</div>
+                <div class="plan-price">$9.99</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li>Unlimited swipes</li>
+                    <li>Basic matching</li>
+                    <li>Standard chat</li>
+                    <li>Profile visibility</li>
+                </ul>
+                <button class="btn-plan" onclick="selectPlan('basic')">Choose Basic</button>
+            </div>
+
+            <div class="pricing-card popular">
+                <div class="plan-name">Premium</div>
+                <div class="plan-price">$19.99</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li>Everything in Basic</li>
+                    <li>Priority matching</li>
+                    <li>Advanced filters</li>
+                    <li>Read receipts</li>
+                    <li>Boost profile</li>
+                    <li>Undo last swipe</li>
+                </ul>
+                <button class="btn-plan" onclick="selectPlan('premium')">Choose Premium</button>
+            </div>
+
+            <div class="pricing-card">
+                <div class="plan-name">Elite</div>
+                <div class="plan-price">$29.99</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li>Everything in Premium</li>
+                    <li>Super likes</li>
+                    <li>Travel mode</li>
+                    <li>Infinite boosts</li>
+                    <li>Exclusive events</li>
+                    <li>24/7 support</li>
+                </ul>
+                <button class="btn-plan" onclick="selectPlan('elite')">Choose Elite</button>
+            </div>
+        </section>
+
+        <section class="benefits-section">
+            <h2>Why Choose VIP?</h2>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <span class="benefit-icon">⚡</span>
+                    <h3>Faster Matching</h3>
+                    <p>Get priority in the matching algorithm and appear at the top of potential matches' feeds.</p>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">👁️</span>
+                    <h3>Increased Visibility</h3>
+                    <p>Your profile gets seen by more people with boosted visibility and special badges.</p>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">💬</span>
+                    <h3>Enhanced Chat</h3>
+                    <p>Advanced messaging features including read receipts, typing indicators, and more.</p>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">🎯</span>
+                    <h3>Advanced Filters</h3>
+                    <p>Use sophisticated filters to find exactly what you're looking for in a partner.</p>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">🔄</span>
+                    <h3>Undo Features</h3>
+                    <p>Made a mistake? No problem - undo your last swipe and get a second chance.</p>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">📊</span>
+                    <h3>Analytics</h3>
+                    <p>Get insights into your profile performance and matching statistics.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonial-section">
+            <h2>What Our VIP Members Say</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"VIP completely changed my dating experience. I found my soulmate within weeks of upgrading!"</p>
+                    <div class="testimonial-author">Sarah M.</div>
+                    <div class="testimonial-role">Premium Member</div>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"The priority matching is incredible. I get way more quality matches now."</p>
+                    <div class="testimonial-author">Mike R.</div>
+                    <div class="testimonial-role">Elite Member</div>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Worth every penny. The features make dating so much more efficient and fun."</p>
+                    <div class="testimonial-author">Emma L.</div>
+                    <div class="testimonial-role">Premium Member</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I cancel my VIP subscription anytime?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can cancel your VIP subscription at any time. You'll continue to have access to VIP features until the end of your current billing period.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Do VIP features really work?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Absolutely! Our data shows VIP members get 3x more matches and find partners 2x faster than free users. The priority matching algorithm gives you a significant advantage.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What's included in the boost feature?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Boost temporarily increases your profile visibility by showing it to more users in your area. Premium members get 5 boosts per month, Elite members get unlimited boosts.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Is my payment information secure?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, we use industry-leading encryption and work with trusted payment processors. Your financial information is never stored on our servers.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>QuickMatch</h3>
+                <p>Find your perfect match with our modern dating platform. Connect, chat, and discover love nearby.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#" title="Facebook">📘</a>
+                    <a href="#" title="Twitter">🐦</a>
+                    <a href="#" title="Instagram">📷</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="vip.html">VIP</a>
+                <a href="register.html">Register</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 QuickMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const themeBtn = document.querySelector('.theme-toggle');
+
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                themeBtn.textContent = '☀️';
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                themeBtn.textContent = '🌙';
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('show');
+        }
+
+        function selectPlan(plan) {
+            alert(`Selected ${plan} plan! Payment integration will be implemented soon.`);
+        }
+
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const toggle = element.querySelector('.faq-toggle');
+
+            if (answer.style.display === 'block') {
+                answer.style.display = 'none';
+                toggle.textContent = '+';
+            } else {
+                answer.style.display = 'block';
+                toggle.textContent = '−';
+            }
+        }
+    </script>
+</body>
+</html>
