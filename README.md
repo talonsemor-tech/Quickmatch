@@ -59,6 +59,25 @@ A `.env.example` file shows the environment variables you may want to set.
 
 The code is released under the MIT License (see [LICENSE](LICENSE)).
 
+### Admin access
+
+The admin panel is available at `/admin.html`.  You can log in with a user marked as admin.
+
+If you don't yet have an admin account, register one via the special registration page:
+
+```
+http://localhost:3000/admin-register.html
+```
+
+For convenience the heart emoji in the header of every non‑admin page is clickable – it opens the admin panel in a new tab.  The icon is hidden on the admin login/registration pages.
+
+New admin users are created with the `admin` flag set to true via the dedicated admin registration page; the main navigation no longer exposes an admin link. Alternatively you can promote an existing user in the database with:
+
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT false;
+UPDATE users SET admin=true WHERE email='you@example.com';
+```
+
 ### Getting started with GitHub
 
 ```bash

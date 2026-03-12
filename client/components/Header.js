@@ -24,7 +24,9 @@ function toggleTheme(){
 return (
 <header>
 <nav>
-<div className='logo'>QuickMatch{user ? ` - ${user.first_name}` : ''}</div>
+<div className='logo' style={{cursor:'pointer'}} onClick={()=>window.open('/admin.html','_blank')}>
+  <span role="img" aria-label="heart">❤️</span> QuickMatch{user ? ` - ${user.first_name}` : ''}
+</div>
 <div className='nav-right'>
 <button className='theme-toggle' onClick={toggleTheme}>🌙</button>
 <button className='menu-btn' onClick={()=>setMenuOpen(!menuOpen)}>☰</button>
@@ -37,6 +39,7 @@ return (
 <Link href='/chat'>Chat</Link>
 <Link href='/vip'>VIP</Link>
 <Link href='/about'>About</Link>
+<Link href='/admin-register.html'>Admin Register</Link>
 {token ? (
   <button onClick={logout} className='logout-btn'>Logout</button>
 ) : (

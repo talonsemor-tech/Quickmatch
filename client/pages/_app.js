@@ -34,11 +34,17 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     const publicPaths=['/','/register','/about','/vip']
+    
     if(!token && !publicPaths.includes(router.pathname)){
       router.push('/')
     }
-    if(token && user && !user.first_name && router.pathname !== '/register'){
-      router.push('/register')
+    
+    if(token && user) {
+      if(!user.first_name && router.pathname !== '/register'){
+        router.push('/register')
+      } else if(user.first_name && (router.pathname === '/' || router.pathname === '/register')){
+        router.push('/dashboard')
+      }
     }
   },[router.pathname, token, user])
 

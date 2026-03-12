@@ -11,6 +11,7 @@ CREATE TABLE users(
  verified BOOLEAN DEFAULT false,
  vip BOOLEAN DEFAULT false,
  anonymous BOOLEAN DEFAULT false,
+ admin BOOLEAN DEFAULT false,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

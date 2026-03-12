@@ -311,7 +311,7 @@
     <header>
         <nav>
             <div class="logo">
-                <span class="heart">❤️</span> QuickMatch
+                <span class="heart" id="admin-trigger" style="cursor:pointer;">❤️</span> QuickMatch
             </div>
             <div class="nav-right">
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
@@ -320,6 +320,7 @@
             <div class="menu" id="menu">
                 <a href="index.html">🏠 Home</a>
                 <a href="register.html">📝 Register</a>
+                <a href="admin-register.html">🔐 Admin Register</a>
                 <a href="about.html">ℹ️ About</a>
                 <a href="vip.html">⭐ VIP</a>
             </div>
@@ -540,5 +541,19 @@
             }
         }
     </script>
+<script>
+// secret admin access (only non-admin pages)
+const trigger=document.getElementById('admin-trigger');
+if(trigger){
+  trigger.style.transition='transform 0.2s';
+  trigger.addEventListener('mouseenter',()=>trigger.style.transform='scale(1.2)');
+  trigger.addEventListener('mouseleave',()=>trigger.style.transform='scale(1)');
+  trigger.addEventListener('mousedown',()=>trigger.style.transform='scale(0.9)');
+  trigger.addEventListener('mouseup',()=>trigger.style.transform='scale(1.2)');
+  trigger.addEventListener('click',()=>{
+    window.location.href='admin.html';
+  });
+}
+</script>
 </body>
 </html>

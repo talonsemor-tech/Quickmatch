@@ -42,6 +42,14 @@ function auth(req,res,next){
 
 }
 
+// ensure user is authenticated and also has admin flag
+function adminAuth(req,res,next){
+  auth(req,res,()=>{
+    if(!req.user.admin) return res.status(403).json({error:'not admin'})
+    next()
+  })
+}
+
 app.get("/",(req,res)=>{
  res.json({status:"Quickmatch API running"})
 })
@@ -77,12 +85,13 @@ app.post("/login",wrap(async(req,res)=>{
 
  if(!user.rows.length) return res.status(401).json({error:"not found"})
 
- const valid=await bcrypt.compare(password,user.rows[0].password)
+ const u=user.rows[0]
+ const valid=await bcrypt.compare(password,u.password)
 
  if(!valid) return res.status(401).json({error:"invalid password"})
 
  const token=jwt.sign(
- {id:user.rows[0].id},
+ {id:u.id, admin: u.admin || false},
  process.env.JWT_SECRET || "secret"
  )
 
@@ -250,14 +259,102 @@ app.post("/payment/webhook",wrap(async(req,res)=>{
 
 }))
 
-app.get("/admin/users",wrap(async(req,res)=>{
+app.get("/admin/users",adminAuth,wrap(async(req,res)=>{
 
  const users=await pool.query(
- "SELECT id,email,verified,vip FROM users"
+ "SELECT id,email,first_name,last_name,username,country,verified,vip,anonymous,admin,created_at FROM users"
  )
 
  res.json(users.rows)
 
+}))
+
+// additional admin endpoints
+app.post("/admin/register",upload.single("profilePhoto"),wrap(async(req,res)=>{
+  const {email,password,firstName,lastName,username,country,phone}=req.body;
+  const profilePhoto=req.file?.path;
+  if(!email||!password||!firstName||!lastName||!username||!country||!phone||!profilePhoto){
+    return res.status(400).json({error:'all fields required'});
+  }
+  const hash=await bcrypt.hash(password,10);
+  const user=await pool.query(
+    "INSERT INTO users(email,password,first_name,last_name,username,country,phone,profile_photo,admin) VALUES($1,$2,$3,$4,$5,$6,$7,$8,true) RETURNING id",
+    [email,hash,firstName,lastName,username,country,phone,profilePhoto]
+  );
+  res.json({userId:user.rows[0].id});
+}))
+
+app.post("/admin/login",wrap(async(req,res)=>{
+  const {email,password}=req.body;
+  const user=await pool.query(
+    "SELECT * FROM users WHERE email=$1",
+    [email]
+  );
+  if(!user.rows.length) return res.status(401).json({error:'not found'});
+  const u=user.rows[0];
+  const valid=await bcrypt.compare(password,u.password);
+  if(!valid) return res.status(401).json({error:'invalid password'});
+  if(!u.admin) return res.status(403).json({error:'not admin'});
+  const token=jwt.sign({id:u.id,admin:true},process.env.JWT_SECRET||"secret");
+  res.json({token});
+}))
+
+app.get("/admin/stats",adminAuth,wrap(async(req,res)=>{
+  const totalUsers=await pool.query("SELECT COUNT(*) FROM users");
+  const recent=await pool.query("SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'");
+  const totalMatches=await pool.query("SELECT COUNT(*) FROM matches");
+  const totalPosts=await pool.query("SELECT COUNT(*) FROM posts");
+  const totalMessages=await pool.query("SELECT COUNT(*) FROM messages");
+  res.json({
+    totalUsers:parseInt(totalUsers.rows[0].count,10),
+    recentSignups:parseInt(recent.rows[0].count,10),
+    totalMatches:parseInt(totalMatches.rows[0].count,10),
+    totalPosts:parseInt(totalPosts.rows[0].count,10),
+    totalMessages:parseInt(totalMessages.rows[0].count,10)
+  });
+}))
+
+app.get("/admin/user/:id",adminAuth,wrap(async(req,res)=>{
+  const u=await pool.query("SELECT id,email,first_name,last_name,username,country,verified,vip,anonymous,admin,created_at FROM users WHERE id=$1",[req.params.id]);
+  if(!u.rows.length) return res.status(404).json({error:'not found'});
+  res.json(u.rows[0]);
+}))
+
+app.put("/admin/user/:id",adminAuth,wrap(async(req,res)=>{
+  const {verified,vip,anonymous,admin} = req.body;
+  await pool.query(
+    "UPDATE users SET verified=$1,vip=$2,anonymous=$3,admin=$4 WHERE id=$5",
+    [verified,vip,anonymous,admin,req.params.id]
+  );
+  res.json({message:'updated'});
+}))
+
+app.delete("/admin/user/:id",adminAuth,wrap(async(req,res)=>{
+  await pool.query("DELETE FROM users WHERE id=$1",[req.params.id]);
+  res.json({message:'deleted'});
+}))
+
+app.get("/admin/posts",adminAuth,wrap(async(req,res)=>{
+  const posts=await pool.query(
+    `SELECT p.*, u.username FROM posts p JOIN users u ON u.id=p.user_id ORDER BY p.created_at DESC`
+  );
+  res.json(posts.rows);
+}))
+
+app.delete("/admin/post/:id",adminAuth,wrap(async(req,res)=>{
+  await pool.query("DELETE FROM posts WHERE id=$1",[req.params.id]);
+  res.json({message:'deleted'});
+}))
+
+app.get("/admin/messages",adminAuth,wrap(async(req,res)=>{
+  const msgs=await pool.query(
+    `SELECT m.*, su.username AS sender_username, ru.username AS receiver_username
+     FROM messages m
+     LEFT JOIN users su ON su.id=m.sender
+     LEFT JOIN users ru ON ru.id=m.receiver
+     ORDER BY m.created_at DESC LIMIT 100`
+  );
+  res.json(msgs.rows);
 }))
 
 // generic error handler
