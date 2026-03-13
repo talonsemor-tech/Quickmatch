@@ -487,7 +487,7 @@
             }
         }
 
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const submitBtn = document.getElementById('submitBtn');
@@ -495,11 +495,44 @@
             submitBtn.textContent = 'Creating Account...';
             submitBtn.disabled = true;
 
-            // Simulate form submission
-            setTimeout(() => {
-                alert('Registration successful! Please login.');
-                window.location.href = 'index.html';
-            }, 2000);
+            const errorElement = document.getElementById('register-error');
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+
+            const API_BASE = window.API_BASE || 'http://localhost:3001';
+
+            const formData = new FormData();
+            ['firstName','lastName','email','password','username','country','phone','profilePhoto'].forEach(id=>{
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.type === 'file') {
+                    if (el.files[0]) formData.append('profilePhoto', el.files[0]);
+                } else {
+                    formData.append(id, el.value);
+                }
+            });
+
+            try {
+                const res = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const json = await res.json();
+                if (res.ok) {
+                    alert('Registration successful! Please login.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const message = json?.error || `Registration failed (${res.status})`;
+                if (errorElement) errorElement.textContent = message;
+            } catch (err) {
+                console.error('Registration error:', err);
+                if (errorElement) errorElement.textContent = `Network error. Ensure the API server is running at ${API_BASE}.`;
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
     </script>
 <script>

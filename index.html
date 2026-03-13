@@ -131,8 +131,10 @@
             // Clear previous error
             errorElement.style.display = 'none';
 
+            const API_BASE = window.API_BASE || 'http://localhost:3001';
+
             try {
-                const response = await fetch('http://localhost:3001/login', {
+                const response = await fetch(`${API_BASE}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -140,9 +142,15 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                const data = await response.json();
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    // If the response isn't JSON (e.g. 404 HTML), handle it gracefully
+                    console.warn('Unable to parse login response as JSON', jsonError);
+                }
 
-                if (response.ok) {
+                if (response.ok && data) {
                     // Login successful
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user || {}));
@@ -153,14 +161,15 @@
                     } else {
                         window.location.href = 'dashboard.html';
                     }
-                } else {
-                    // Login failed
-                    errorElement.textContent = data.error || 'Login failed';
-                    errorElement.style.display = 'block';
+                    return;
                 }
+
+                // Login failed
+                errorElement.textContent = (data && data.error) ? data.error : `Login failed (${response.status} ${response.statusText})`;
+                errorElement.style.display = 'block';
             } catch (error) {
                 console.error('Login error:', error);
-                errorElement.textContent = 'Network error. Please try again.';
+                errorElement.textContent = `Unable to reach the API server at ${API_BASE}. Make sure the backend is running and accessible.`;
                 errorElement.style.display = 'block';
             }
         });
