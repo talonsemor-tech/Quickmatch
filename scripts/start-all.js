@@ -47,8 +47,19 @@ async function main() {
   console.log('Starting infrastructure (Postgres + Redis) via docker compose...');
   try {
     await runCommand('docker', ['compose', 'up', '-d'], { prefix: '[docker]' });
+    // Wait a bit for DB to be ready
+    await new Promise(resolve => setTimeout(resolve, 5000));
   } catch (err) {
     console.warn('Unable to start docker compose automatically. If you do not have Docker installed, start Postgres/Redis manually.');
+    console.warn(err.message);
+  }
+
+  // Initialize database
+  console.log('Initializing database...');
+  try {
+    await runCommand('npm', ['run', 'init-db'], { cwd: path.join(root, 'api-server'), prefix: '[init-db]' });
+  } catch (err) {
+    console.warn('Database initialization failed. It may already be initialized.');
     console.warn(err.message);
   }
 

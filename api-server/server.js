@@ -10,7 +10,17 @@ const {Pool}=require("pg")
 
 const app=express()
 
-app.use(cors())
+// CORS configuration to allow all origins (including GitHub Pages)
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://talonsemor-tech.github.io', 'http://localhost:3001'], // Allow local and GitHub
+  credentials: true, // Allow credentials if needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors())
+
 app.use(express.json())
 
 // helper to wrap async route handlers and forward errors
