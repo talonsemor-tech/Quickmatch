@@ -45,30 +45,14 @@
         </div>
 
         <div id="login-section" class="login-form">
-            <div style="text-align:center; margin-bottom:15px;">
-                <button id="login-tab" class="btn btn-primary" style="margin-right:5px;">Login</button>
-                <button id="register-tab" class="btn btn-success" onclick="window.location.href='admin-register.html'">Register</button>
-            </div>
-            <div id="login-form">
-                <h2>Admin Login</h2>
-                <input type="email" id="admin-email" placeholder="Admin Email" required>
-                <input type="password" id="admin-password" placeholder="Password" required>
-                <button onclick="adminLogin()">Login</button>
-                <p id="login-error" style="color: red; margin-top: 10px;"></p>
-            </div>
-            <div id="register-form" style="display:none;">
-                <h2>Register Admin</h2>
-                <input type="text" id="reg-firstName" placeholder="First Name" required>
-                <input type="text" id="reg-lastName" placeholder="Last Name" required>
-                <input type="email" id="reg-email" placeholder="Email" required>
-                <input type="password" id="reg-password" placeholder="Password" required>
-                <input type="text" id="reg-username" placeholder="Username" required>
-                <input type="text" id="reg-country" placeholder="Country" required>
-                <input type="text" id="reg-phone" placeholder="Phone" required>
-                <input type="file" id="reg-profilePhoto" accept="image/*" required>
-                <button onclick="adminRegister()">Register</button>
-                <p id="register-error" style="color: red; margin-top: 10px;"></p>
-            </div>
+            <h2>Admin Login</h2>
+            <input type="email" id="admin-email" placeholder="Admin Email" required>
+            <input type="password" id="admin-password" placeholder="Password" required>
+            <button onclick="adminLogin()">Login</button>
+            <p style="text-align: center; margin: 15px 0;">
+                <a href="admin-register.html" style="color: #007bff; text-decoration: none;">Need to register as admin?</a>
+            </p>
+            <p id="login-error" style="color: red; margin-top: 10px;"></p>
         </div>
 
         <div id="dashboard" class="dashboard">
@@ -177,10 +161,7 @@
 
         // toggle login/register
         document.addEventListener('DOMContentLoaded',()=>{
-            document.getElementById('login-tab').addEventListener('click',()=>{
-                document.getElementById('login-form').style.display='block';
-            });
-            // register-tab simply redirects to registration page via onclick attribute
+
         });
 
         if (adminToken) {
@@ -192,6 +173,10 @@
         async function adminLogin() {
             const email = document.getElementById('admin-email').value;
             const password = document.getElementById('admin-password').value;
+            if (!email || !password) {
+                document.getElementById('login-error').textContent = 'Please fill in all fields';
+                return;
+            }
             try {
                 const res = await fetch('http://localhost:3001/admin/login', {
                     method: 'POST',
@@ -206,34 +191,10 @@
                     document.getElementById('dashboard').style.display = 'block';
                     loadDashboard();
                 } else {
-                    document.getElementById('login-error').textContent = data.error;
+                    document.getElementById('login-error').textContent = data.error || 'Login failed';
                 }
             } catch (err) {
-                document.getElementById('login-error').textContent = 'Login failed';
-            }
-        }
-
-        async function adminRegister() {
-            const data = new FormData();
-            ['reg-firstName','reg-lastName','reg-email','reg-password','reg-username','reg-country','reg-phone','reg-profilePhoto'].forEach(id=>{
-                const el=document.getElementById(id);
-                if(el.type==='file') data.append('profilePhoto', el.files[0]);
-                else data.append(id.replace('reg-',''), el.value);
-            });
-            try {
-                const res = await fetch('http://localhost:3001/admin/register', {
-                    method: 'POST',
-                    body: data
-                });
-                const json = await res.json();
-                if(res.ok){
-                    alert('Admin account created. Please login.');
-                    document.getElementById('login-tab').click();
-                } else {
-                    document.getElementById('register-error').textContent = json.error;
-                }
-            } catch(err){
-                document.getElementById('register-error').textContent = 'Registration failed';
+                document.getElementById('login-error').textContent = 'Network error. Please check if the server is running.';
             }
         }
 

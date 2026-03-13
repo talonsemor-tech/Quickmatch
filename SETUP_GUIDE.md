@@ -2,11 +2,60 @@
 
 ## ✅ Pre-Requirements
 
-- Node.js 14+ 
+- Node.js 14+
 - npm or yarn
+- PostgreSQL (or use Docker)
 - Backend API running on `http://localhost:3001`
 - Socket.io server running on `http://localhost:4000`
-- SQLite/PostgreSQL database configured
+- Database configured
+
+## 🚀 Quick Start
+
+### 1. Database Setup
+
+**Option A: Using Docker (Recommended)**
+```bash
+# Start PostgreSQL and Redis
+docker-compose up -d
+
+# Initialize database schema
+cd api-server && npm run init-db
+```
+
+**Option B: Local PostgreSQL**
+```bash
+# Install PostgreSQL locally
+# Create database and user
+createdb quickmatch
+createuser quickmatch -P
+# Password: quickmatch
+
+# Initialize database schema
+cd api-server && npm run init-db
+```
+
+### 2. Environment Setup
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Install dependencies
+cd api-server && npm install
+cd ../socket-server && npm install
+cd ../client && npm install
+```
+
+### 3. Start Services
+```bash
+# Terminal 1: API Server
+cd api-server && npm run dev
+
+# Terminal 2: Socket Server
+cd socket-server && npm run dev
+
+# Terminal 3: Client
+cd client && npm run dev
+```
 
 ---
 

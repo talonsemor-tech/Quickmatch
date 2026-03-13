@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - QuickMatch</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-container {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: 2rem;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .profile-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .profile-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .profile-photo-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #667eea;
+            margin: 0 auto 1rem;
+            display: block;
+        }
+
+        .photo-upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-photo-input {
+            display: none;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .edit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .vip-btn {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .vip-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .profile-main {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .edit-toggle {
+            background: #f0f0f0;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-toggle:hover {
+            background: #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+        }
+
+        .view-mode .form-group input,
+        .view-mode .form-group textarea,
+        .view-mode .form-group select {
+            background: #f8f9fa;
+            border-color: #f8f9fa;
+            cursor: default;
+        }
+
+        .view-mode .edit-toggle {
+            display: block;
+        }
+
+        .edit-mode .edit-toggle {
+            display: none;
+        }
+
+        .edit-mode .save-btn,
+        .edit-mode .cancel-btn {
+            display: inline-block;
+        }
+
+        .view-mode .save-btn,
+        .view-mode .cancel-btn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 1rem;
+            }
+
+            .profile-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .profile-sidebar {
+                padding: 1.5rem;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="heart">❤️</span> QuickMatch
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+                <a href="#" onclick="logout()" class="nav-link" title="Logout">🚪</a>
+                <button class="menu-btn" onclick="toggleMenu()" title="Menu">☰</button>
+            </div>
+            <div class="menu" id="menu">
+                <a href="dashboard.html">🏠 Dashboard</a>
+                <a href="discover.html">🔍 Discover</a>
+                <a href="chat.html">💬 Messages</a>
+                <a href="profile.html">👤 Profile</a>
+                <a href="vip.html">⭐ VIP</a>
+                <a href="about.html">ℹ️ About</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>My Profile</h1>
+            <p>Manage your profile and preferences</p>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-sidebar">
+                <div class="profile-photo-container">
+                    <img id="profile-photo" src="https://via.placeholder.com/150x150/f0f0f0/666?text=No+Photo" alt="Profile Photo" class="profile-photo">
+                    <input type="file" id="photo-input" class="profile-photo-input" accept="image/*">
+                    <button onclick="document.getElementById('photo-input').click()" class="photo-upload-btn">
+                        <i class="fas fa-camera"></i> Change Photo
+                    </button>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="matches-count">0</span>
+                        <span class="stat-label">Matches</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="likes-count">0</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="views-count">0</span>
+                        <span class="stat-label">Views</span>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button onclick="toggleEditMode()" class="action-btn edit-btn">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <a href="vip.html" class="action-btn vip-btn">
+                        <i class="fas fa-crown"></i> Upgrade to VIP
+                    </a>
+                </div>
+            </div>
+
+            <div class="profile-main view-mode" id="profile-form">
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Basic Information</h2>
+                        <button onclick="toggleEditMode()" class="edit-toggle">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="first-name">First Name</label>
+                        <input type="text" id="first-name" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last-name">Last Name</label>
+                        <input type="text" id="last-name" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" id="phone" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" readonly>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">About Me</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" readonly placeholder="Tell others about yourself..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interests">Interests</label>
+                        <input type="text" id="interests" readonly placeholder="e.g., reading, hiking, cooking">
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Preferences</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="looking-for">Looking For</label>
+                        <select id="looking-for" disabled>
+                            <option value="">Select...</option>
+                            <option value="friendship">Friendship</option>
+                            <option value="dating">Dating</option>
+                            <option value="relationship">Relationship</option>
+                            <option value="casual">Casual</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age-range">Preferred Age Range</label>
+                        <input type="text" id="age-range" readonly placeholder="e.g., 25-35">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button onclick="saveProfile()" class="save-btn">Save Changes</button>
+                    <button onclick="cancelEdit()" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalData = {};
+        let token = localStorage.getItem('token');
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('show');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Load profile data
+        async function loadProfile() {
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3001/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const profile = await response.json();
+                    populateProfileForm(profile);
+                    originalData = { ...profile };
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        // Load profile stats
+        async function loadProfileStats() {
+            try {
+                const response = await fetch('http://localhost:3001/profile/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('matches-count').textContent = stats.matches || 0;
+                    document.getElementById('likes-count').textContent = stats.likes || 0;
+                    document.getElementById('views-count').textContent = stats.views || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load profile stats:', error);
+            }
+        }
+
+        function populateProfileForm(profile) {
+            document.getElementById('first-name').value = profile.first_name || '';
+            document.getElementById('last-name').value = profile.last_name || '';
+            document.getElementById('email').value = profile.email || '';
+            document.getElementById('username').value = profile.username || '';
+            document.getElementById('phone').value = profile.phone || '';
+            document.getElementById('country').value = profile.country || '';
+            document.getElementById('bio').value = profile.bio || '';
+            document.getElementById('interests').value = profile.interests || '';
+            document.getElementById('looking-for').value = profile.looking_for || '';
+            document.getElementById('age-range').value = profile.age_range || '';
+
+            if (profile.profile_photo) {
+                document.getElementById('profile-photo').src = profile.profile_photo;
+            }
+        }
+
+        function toggleEditMode() {
+            const form = document.getElementById('profile-form');
+            form.classList.toggle('view-mode');
+            form.classList.toggle('edit-mode');
+
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                if (form.classList.contains('edit-mode')) {
+                    input.removeAttribute('readonly');
+                    input.removeAttribute('disabled');
+                } else {
+                    input.setAttribute('readonly', 'readonly');
+                    if (input.tagName === 'SELECT') {
+                        input.setAttribute('disabled', 'disabled');
+                    }
+                }
+            });
+        }
+
+        async function saveProfile() {
+            const formData = new FormData();
+
+            // Basic info
+            formData.append('firstName', document.getElementById('first-name').value);
+            formData.append('lastName', document.getElementById('last-name').value);
+            formData.append('username', document.getElementById('username').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('country', document.getElementById('country').value);
+
+            // About me
+            formData.append('bio', document.getElementById('bio').value);
+            formData.append('interests', document.getElementById('interests').value);
+
+            // Preferences
+            formData.append('lookingFor', document.getElementById('looking-for').value);
+            formData.append('ageRange', document.getElementById('age-range').value);
+
+            // Photo
+            const photoInput = document.getElementById('photo-input');
+            if (photoInput.files[0]) {
+                formData.append('profilePhoto', photoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('http://localhost:3001/profile', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Profile updated successfully!');
+                    toggleEditMode();
+                    loadProfile(); // Reload to get updated data
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update profile: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Failed to save profile:', error);
+                alert('Failed to save profile. Please try again.');
+            }
+        }
+
+        function cancelEdit() {
+            populateProfileForm(originalData);
+            toggleEditMode();
+        }
+
+        // Photo preview
+        document.getElementById('photo-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-photo').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.add(savedTheme);
+
+            loadProfile();
+            loadProfileStats();
+        });
+    </script>
+</body>
+</html>

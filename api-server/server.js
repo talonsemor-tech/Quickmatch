@@ -25,7 +25,47 @@ const pool=new Pool({
  "postgres://quickmatch:quickmatch@localhost:5432/quickmatch"
 })
 
-const upload=multer({dest:"uploads"})
+// Test database connection
+pool.connect((err, client, release) => {
+ if (err) {
+  console.error('Database connection failed:', err.message);
+  console.log('Please ensure PostgreSQL is running and the database exists.');
+  console.log('Run: docker-compose up -d');
+  console.log('Or setup local PostgreSQL with the credentials in .env');
+  console.log('Server will continue running but database operations will fail.');
+  // Don't exit, let the server run for testing
+ } else {
+  console.log('Database connected successfully');
+  release();
+ }
+});
+
+const upload=multer({
+ dest:"uploads",
+ limits: {
+  fileSize: 5 * 1024 * 1024 // 5MB limit
+ },
+ fileFilter: (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+   cb(null, true);
+  } else {
+   cb(new Error('Only image files are allowed'));
+  }
+ }
+})
+
+// Error handling middleware for multer
+app.use((error, req, res, next) => {
+ if (error instanceof multer.MulterError) {
+  if (error.code === 'LIMIT_FILE_SIZE') {
+   return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+  }
+ }
+ if (error.message === 'Only image files are allowed') {
+  return res.status(400).json({ error: error.message });
+ }
+ next(error);
+});
 
 function auth(req,res,next){
 
@@ -51,7 +91,7 @@ function adminAuth(req,res,next){
 }
 
 app.get("/",(req,res)=>{
- res.json({status:"Quickmatch API running"})
+ res.json({status:"Quickmatch API running", version: "1.0.0"})
 })
 
 app.post("/register",upload.single("profilePhoto"),wrap(async(req,res)=>{
@@ -79,23 +119,33 @@ app.post("/login",wrap(async(req,res)=>{
  const {email,password}=req.body
 
  const user=await pool.query(
- "SELECT * FROM users WHERE email=$1",
+ "SELECT id,email,first_name,last_name,username,country,phone,profile_photo,vip,verified,anonymous,admin FROM users WHERE email=$1",
  [email]
  )
 
- if(!user.rows.length) return res.status(401).json({error:"not found"})
+ if(!user.rows.length) return res.status(401).json({error:"User not found"})
 
  const u=user.rows[0]
  const valid=await bcrypt.compare(password,u.password)
 
- if(!valid) return res.status(401).json({error:"invalid password"})
+ if(!valid) return res.status(401).json({error:"Invalid password"})
 
  const token=jwt.sign(
  {id:u.id, admin: u.admin || false},
  process.env.JWT_SECRET || "secret"
  )
 
- res.json({token})
+ res.json({
+  token,
+  user: {
+   id: u.id,
+   email: u.email,
+   first_name: u.first_name,
+   last_name: u.last_name,
+   username: u.username,
+   admin: u.admin
+  }
+ })
 
 }))
 
@@ -276,12 +326,20 @@ app.post("/admin/register",upload.single("profilePhoto"),wrap(async(req,res)=>{
   if(!email||!password||!firstName||!lastName||!username||!country||!phone||!profilePhoto){
     return res.status(400).json({error:'all fields required'});
   }
-  const hash=await bcrypt.hash(password,10);
-  const user=await pool.query(
-    "INSERT INTO users(email,password,first_name,last_name,username,country,phone,profile_photo,admin) VALUES($1,$2,$3,$4,$5,$6,$7,$8,true) RETURNING id",
-    [email,hash,firstName,lastName,username,country,phone,profilePhoto]
-  );
-  res.json({userId:user.rows[0].id});
+  try {
+    const hash=await bcrypt.hash(password,10);
+    const user=await pool.query(
+      "INSERT INTO users(email,password,first_name,last_name,username,country,phone,profile_photo,admin) VALUES($1,$2,$3,$4,$5,$6,$7,$8,true) RETURNING id",
+      [email,hash,firstName,lastName,username,country,phone,profilePhoto]
+    );
+    res.json({userId:user.rows[0].id});
+  } catch (error) {
+    if (error.code === '23505') { // unique constraint violation
+      return res.status(400).json({error: 'Email or username already exists'});
+    }
+    console.error('Registration error:', error);
+    res.status(500).json({error: 'Internal server error'});
+  }
 }))
 
 app.post("/admin/login",wrap(async(req,res)=>{
@@ -355,6 +413,183 @@ app.get("/admin/messages",adminAuth,wrap(async(req,res)=>{
      ORDER BY m.created_at DESC LIMIT 100`
   );
   res.json(msgs.rows);
+}))
+
+// User profile endpoints
+app.get("/profile",auth,wrap(async(req,res)=>{
+  const user=await pool.query(`
+    SELECT u.*, p.bio, p.interests, p.looking_for, p.age_range
+    FROM users u
+    LEFT JOIN profiles p ON u.id = p.user_id
+    WHERE u.id=$1
+  `,[req.user.id]);
+  if(!user.rows.length) return res.status(404).json({error:'not found'});
+  res.json(user.rows[0]);
+}))
+
+app.get("/profile/stats",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  const matches=await pool.query("SELECT COUNT(*) FROM matches WHERE user1=$1 OR user2=$1",[userId]);
+  const likes=await pool.query("SELECT COUNT(*) FROM likes WHERE sender=$1",[userId]);
+  const views=await pool.query("SELECT COUNT(*) FROM profile_views WHERE viewed_user=$1",[userId]);
+  res.json({
+    matches:parseInt(matches.rows[0].count,10),
+    likes:parseInt(likes.rows[0].count,10),
+    views:parseInt(views.rows[0].count,10)
+  });
+}))
+
+app.put("/profile",auth,upload.single("profilePhoto"),wrap(async(req,res)=>{
+  const userId=req.user.id;
+  const {firstName,lastName,username,phone,country,bio,interests,lookingFor,ageRange}=req.body;
+  const profilePhoto=req.file?.path;
+
+  const updates=[]
+  const values=[]
+  let paramCount=1
+
+  if(firstName){updates.push(`first_name=$${paramCount}`);values.push(firstName);paramCount++}
+  if(lastName){updates.push(`last_name=$${paramCount}`);values.push(lastName);paramCount++}
+  if(username){updates.push(`username=$${paramCount}`);values.push(username);paramCount++}
+  if(phone){updates.push(`phone=$${paramCount}`);values.push(phone);paramCount++}
+  if(country){updates.push(`country=$${paramCount}`);values.push(country);paramCount++}
+  if(profilePhoto){updates.push(`profile_photo=$${paramCount}`);values.push(profilePhoto);paramCount++}
+
+  if(updates.length){
+    values.push(userId)
+    await pool.query(`UPDATE users SET ${updates.join(',')} WHERE id=$${paramCount}`,values)
+  }
+
+  // Update or insert profile details
+  const profileData={user_id:userId}
+  if(bio) profileData.bio=bio
+  if(interests) profileData.interests=interests
+  if(lookingFor) profileData.looking_for=lookingFor
+  if(ageRange) profileData.age_range=ageRange
+
+  await pool.query(`
+    INSERT INTO profiles(user_id,bio,interests,looking_for,age_range)
+    VALUES($1,$2,$3,$4,$5)
+    ON CONFLICT(user_id) DO UPDATE SET
+    bio=EXCLUDED.bio,
+    interests=EXCLUDED.interests,
+    looking_for=EXCLUDED.looking_for,
+    age_range=EXCLUDED.age_range
+  `,[userId,bio,interests,lookingFor,ageRange])
+
+  res.json({success:true})
+}))
+
+// Dashboard endpoints
+app.get("/dashboard/stats",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  const matches=await pool.query("SELECT COUNT(*) FROM matches WHERE user1=$1 OR user2=$1",[userId]);
+  const messages=await pool.query("SELECT COUNT(*) FROM messages WHERE sender=$1 OR receiver=$1",[userId]);
+  const likes=await pool.query("SELECT COUNT(*) FROM likes WHERE sender=$1",[userId]);
+  res.json({
+    matches:parseInt(matches.rows[0].count,10),
+    messages:parseInt(messages.rows[0].count,10),
+    likes:parseInt(likes.rows[0].count,10)
+  });
+}))
+
+app.get("/dashboard/activity",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  // Get recent matches, messages, likes
+  const activities=[]
+  // This is a simplified version - in real app you'd have an activities table
+  res.json(activities)
+}))
+
+// Discovery endpoints
+app.get("/discover",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  // Get profiles that user hasn't swiped on yet
+  const profiles=await pool.query(`
+    SELECT u.id, u.first_name, u.last_name, u.country, u.profile_photo, p.bio
+    FROM users u
+    LEFT JOIN profiles p ON u.id = p.user_id
+    WHERE u.id != $1
+    AND u.id NOT IN (
+      SELECT target FROM swipes WHERE swiper = $1
+    )
+    LIMIT 20
+  `,[userId]);
+  res.json(profiles.rows)
+}))
+
+app.post("/swipe",auth,wrap(async(req,res)=>{
+  const {target,liked}=req.body;
+  const swiper=req.user.id;
+
+  await pool.query("INSERT INTO swipes(swiper,target,liked) VALUES($1,$2,$3)",[swiper,target,liked]);
+
+  if(liked){
+    // Check for match
+    const reciprocal=await pool.query("SELECT * FROM swipes WHERE swiper=$1 AND target=$2 AND liked=true",[target,swiper]);
+    if(reciprocal.rows.length>0){
+      await pool.query("INSERT INTO matches(user1,user2) VALUES($1,$2)",[swiper,target]);
+      res.json({isMatch:true});
+    }else{
+      res.json({isMatch:false});
+    }
+  }else{
+    res.json({isMatch:false});
+  }
+}))
+
+app.post("/check-match",auth,wrap(async(req,res)=>{
+  const {target}=req.body;
+  const user=req.user.id;
+
+  const match=await pool.query("SELECT * FROM matches WHERE (user1=$1 AND user2=$2) OR (user1=$2 AND user2=$1)",[user,target]);
+  res.json({isMatch:match.rows.length>0});
+}))
+
+// Messaging endpoints
+app.get("/conversations",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  const conversations=await pool.query(`
+    SELECT DISTINCT
+      u.id, u.first_name, u.last_name, u.profile_photo, u.country,
+      m.content as last_message, m.created_at as last_message_time
+    FROM users u
+    INNER JOIN matches mt ON (mt.user1 = u.id OR mt.user2 = u.id) AND (mt.user1 = $1 OR mt.user2 = $1)
+    LEFT JOIN LATERAL (
+      SELECT content, created_at
+      FROM messages
+      WHERE (sender = u.id AND receiver = $1) OR (sender = $1 AND receiver = u.id)
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) m ON true
+    WHERE u.id != $1
+    ORDER BY m.created_at DESC NULLS LAST
+  `,[userId]);
+  res.json(conversations.rows)
+}))
+
+app.get("/messages/:userId",auth,wrap(async(req,res)=>{
+  const userId=req.user.id;
+  const otherUserId=req.params.userId;
+
+  const messages=await pool.query(`
+    SELECT id, sender, receiver, content, type, created_at
+    FROM messages
+    WHERE (sender=$1 AND receiver=$2) OR (sender=$2 AND receiver=$1)
+    ORDER BY created_at ASC
+  `,[userId,otherUserId]);
+  res.json(messages.rows)
+}))
+
+app.post("/messages",auth,wrap(async(req,res)=>{
+  const {receiver,content}=req.body;
+  const sender=req.user.id;
+
+  const message=await pool.query(
+    "INSERT INTO messages(sender,receiver,content) VALUES($1,$2,$3) RETURNING *",
+    [sender,receiver,content]
+  );
+  res.json(message.rows[0])
 }))
 
 // generic error handler

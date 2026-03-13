@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
+    "init-db": "node init-db.js",
     "lint": "echo \"No linter configured\""
   },
   "dependencies": {

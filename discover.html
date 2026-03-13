@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover - QuickMatch</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .discover-container {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: 2rem;
+        }
+
+        .discover-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .discover-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .profile-info {
+            padding: 1.5rem;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .profile-details {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .profile-bio {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .like-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .like-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .pass-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .pass-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .no-more-profiles {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .no-more-profiles h2 {
+            margin-bottom: 1rem;
+        }
+
+        .no-more-profiles p {
+            margin-bottom: 2rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .discover-container {
+                padding: 1rem;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="heart">❤️</span> QuickMatch
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+                <a href="#" onclick="logout()" class="nav-link" title="Logout">🚪</a>
+                <button class="menu-btn" onclick="toggleMenu()" title="Menu">☰</button>
+            </div>
+            <div class="menu" id="menu">
+                <a href="dashboard.html">🏠 Dashboard</a>
+                <a href="discover.html">🔍 Discover</a>
+                <a href="chat.html">💬 Messages</a>
+                <a href="profile.html">👤 Profile</a>
+                <a href="vip.html">⭐ VIP</a>
+                <a href="about.html">ℹ️ About</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="discover-container">
+        <div class="discover-header">
+            <h1>Discover Your Match</h1>
+            <p>Swipe right to like, left to pass. Find your perfect connection!</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="age-min">Min Age</label>
+                <select id="age-min">
+                    <option value="18">18</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                    <option value="30">30</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="age-max">Max Age</label>
+                <select id="age-max">
+                    <option value="30">30</option>
+                    <option value="35">35</option>
+                    <option value="40">40</option>
+                    <option value="50">50+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="distance">Distance (km)</label>
+                <select id="distance">
+                    <option value="10">10 km</option>
+                    <option value="25">25 km</option>
+                    <option value="50">50 km</option>
+                    <option value="100">100+ km</option>
+                </select>
+            </div>
+            <button onclick="applyFilters()" class="refresh-btn">Apply Filters</button>
+        </div>
+
+        <div id="profile-container">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>Loading profiles...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let profiles = [];
+        let currentProfileIndex = 0;
+        let token = localStorage.getItem('token');
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('show');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Load profiles
+        async function loadProfiles() {
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3001/discover', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    profiles = await response.json();
+                    currentProfileIndex = 0;
+                    displayCurrentProfile();
+                } else {
+                    showNoMoreProfiles();
+                }
+            } catch (error) {
+                console.error('Failed to load profiles:', error);
+                showNoMoreProfiles();
+            }
+        }
+
+        function displayCurrentProfile() {
+            const container = document.getElementById('profile-container');
+
+            if (currentProfileIndex >= profiles.length) {
+                showNoMoreProfiles();
+                return;
+            }
+
+            const profile = profiles[currentProfileIndex];
+
+            container.innerHTML = `
+                <div class="profile-card">
+                    <img src="${profile.profile_photo || 'https://via.placeholder.com/400x400/f0f0f0/666?text=No+Photo'}" alt="${profile.first_name}" class="profile-image" onerror="this.src='https://via.placeholder.com/400x400/f0f0f0/666?text=No+Photo'">
+                    <div class="profile-info">
+                        <div class="profile-name">${profile.first_name} ${profile.last_name}, ${calculateAge(profile.birth_date) || '25'}</div>
+                        <div class="profile-details">
+                            <i class="fas fa-map-marker-alt"></i> ${profile.country || 'Unknown'}
+                        </div>
+                        <div class="profile-bio">${profile.bio || 'No bio available'}</div>
+                        <div class="action-buttons">
+                            <button onclick="passProfile()" class="action-btn pass-btn">
+                                <i class="fas fa-times"></i>
+                                Pass
+                            </button>
+                            <button onclick="likeProfile()" class="action-btn like-btn">
+                                <i class="fas fa-heart"></i>
+                                Like
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function likeProfile() {
+            const profile = profiles[currentProfileIndex];
+
+            try {
+                await fetch('http://localhost:3001/swipe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ target: profile.id, liked: true })
+                });
+
+                // Check for match
+                const matchResponse = await fetch('http://localhost:3001/check-match', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ target: profile.id })
+                });
+
+                if (matchResponse.ok) {
+                    const matchData = await matchResponse.json();
+                    if (matchData.isMatch) {
+                        alert(`🎉 It's a match with ${profile.first_name}! Start chatting now!`);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Failed to like profile:', error);
+            }
+
+            currentProfileIndex++;
+            displayCurrentProfile();
+        }
+
+        function passProfile() {
+            currentProfileIndex++;
+            displayCurrentProfile();
+        }
+
+        function showNoMoreProfiles() {
+            const container = document.getElementById('profile-container');
+            container.innerHTML = `
+                <div class="no-more-profiles">
+                    <h2>No more profiles to show</h2>
+                    <p>Check back later for new matches, or adjust your filters!</p>
+                    <button onclick="loadProfiles()" class="refresh-btn">Refresh</button>
+                </div>
+            `;
+        }
+
+        function applyFilters() {
+            // In a real app, you'd send filters to the server
+            loadProfiles();
+        }
+
+        function calculateAge(birthDate) {
+            if (!birthDate) return null;
+            const today = new Date();
+            const birth = new Date(birthDate);
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.add(savedTheme);
+
+            loadProfiles();
+        });
+    </script>
+</body>
+</html>

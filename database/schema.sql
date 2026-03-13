@@ -19,7 +19,9 @@ CREATE TABLE profiles(
  id SERIAL PRIMARY KEY,
  user_id INTEGER REFERENCES users(id),
  bio TEXT,
- location TEXT
+ interests TEXT,
+ looking_for TEXT,
+ age_range TEXT
 );
 
 CREATE TABLE likes(
@@ -41,13 +43,41 @@ CREATE TABLE messages(
  sender INTEGER,
  receiver INTEGER,
  content TEXT,
- type TEXT,
+ type TEXT DEFAULT 'text',
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE swipes(
+ id SERIAL PRIMARY KEY,
+ swiper INTEGER REFERENCES users(id),
+ target INTEGER REFERENCES users(id),
+ liked BOOLEAN,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE posts(
+ id SERIAL PRIMARY KEY,
+ user_id INTEGER REFERENCES users(id),
+ caption TEXT,
+ image TEXT,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE profile_views(
+ id SERIAL PRIMARY KEY,
+ viewer INTEGER REFERENCES users(id),
+ viewed_user INTEGER REFERENCES users(id),
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE payments(
  id SERIAL PRIMARY KEY,
  user_id INTEGER,
+ amount DECIMAL,
+ currency TEXT,
+ status TEXT,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
  amount INTEGER,
  method TEXT,
  status TEXT,

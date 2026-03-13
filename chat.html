@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - QuickMatch</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .chat-container {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .conversations-list {
+            flex: 1;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .conversations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .conversations-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .new-match-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .new-match-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .conversation-item:hover,
+        .conversation-item.active {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 3px solid #667eea;
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .conversation-last-msg {
+            color: #666;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .chat-area {
+            flex: 2;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 3px solid #667eea;
+        }
+
+        .chat-user-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .chat-user-info p {
+            margin: 0.25rem 0 0 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 15px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .chat-input-area {
+            padding: 1.5rem;
+            border-top: 2px solid #f0f0f0;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .no-chat-selected {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .no-chat-selected i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .no-chat-selected h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .typing-indicator {
+            display: none;
+            font-style: italic;
+            color: #666;
+            padding: 0.5rem 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .conversations-list {
+                max-width: none;
+                order: 2;
+            }
+
+            .chat-area {
+                order: 1;
+                min-height: 500px;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="heart">❤️</span> QuickMatch
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+                <a href="#" onclick="logout()" class="nav-link" title="Logout">🚪</a>
+                <button class="menu-btn" onclick="toggleMenu()" title="Menu">☰</button>
+            </div>
+            <div class="menu" id="menu">
+                <a href="dashboard.html">🏠 Dashboard</a>
+                <a href="discover.html">🔍 Discover</a>
+                <a href="chat.html">💬 Messages</a>
+                <a href="profile.html">👤 Profile</a>
+                <a href="vip.html">⭐ VIP</a>
+                <a href="about.html">ℹ️ About</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="chat-container">
+        <div class="conversations-list">
+            <div class="conversations-header">
+                <h2>Messages</h2>
+                <button class="new-match-btn" onclick="window.location.href='discover.html'">
+                    <i class="fas fa-plus"></i> New Match
+                </button>
+            </div>
+            <div id="conversations-list">
+                <!-- Conversations will be loaded here -->
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div id="chat-content">
+                <div class="no-chat-selected">
+                    <i class="fas fa-comments"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Choose someone from your matches to start chatting</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChatUser = null;
+        let token = localStorage.getItem('token');
+        let socket = null;
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('show');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if (socket) socket.disconnect();
+            window.location.href = 'index.html';
+        }
+
+        // Load conversations
+        async function loadConversations() {
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3001/conversations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const conversations = await response.json();
+                    displayConversations(conversations);
+                }
+            } catch (error) {
+                console.error('Failed to load conversations:', error);
+            }
+        }
+
+        function displayConversations(conversations) {
+            const container = document.getElementById('conversations-list');
+
+            if (conversations.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">No conversations yet. Start matching!</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            conversations.forEach(conv => {
+                const convElement = document.createElement('div');
+                convElement.className = 'conversation-item';
+                convElement.onclick = () => openChat(conv);
+
+                convElement.innerHTML = `
+                    <img src="${conv.profile_photo || 'https://via.placeholder.com/50x50/f0f0f0/666?text=?'}"
+                         alt="${conv.first_name}" class="conversation-avatar">
+                    <div class="conversation-info">
+                        <div class="conversation-name">${conv.first_name} ${conv.last_name}</div>
+                        <div class="conversation-last-msg">${conv.last_message || 'Start a conversation!'}</div>
+                    </div>
+                    <div class="conversation-time">${conv.last_message_time ? formatTime(conv.last_message_time) : ''}</div>
+                `;
+
+                container.appendChild(convElement);
+            });
+        }
+
+        function openChat(user) {
+            currentChatUser = user;
+
+            // Update UI
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Display chat interface
+            const chatContent = document.getElementById('chat-content');
+            chatContent.innerHTML = `
+                <div class="chat-header">
+                    <img src="${user.profile_photo || 'https://via.placeholder.com/50x50/f0f0f0/666?text=?'}" alt="${user.first_name}" class="chat-avatar">
+                    <div class="chat-user-info">
+                        <h3>${user.first_name} ${user.last_name}</h3>
+                        <p>${user.country || 'Unknown location'}</p>
+                    </div>
+                </div>
+                <div class="chat-messages" id="messages-container">
+                    <div class="typing-indicator" id="typing-indicator">Typing...</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="message-input" class="chat-input" placeholder="Type a message..." maxlength="500">
+                    <button onclick="sendMessage()" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            `;
+
+            // Load messages
+            loadMessages(user.id);
+
+            // Connect to socket for real-time messaging
+            connectSocket();
+        }
+
+        async function loadMessages(userId) {
+            try {
+                const response = await fetch(`http://localhost:3001/messages/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const messages = await response.json();
+                    displayMessages(messages);
+                }
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messages-container');
+            const typingIndicator = document.getElementById('typing-indicator');
+
+            // Clear existing messages except typing indicator
+            const messageElements = container.querySelectorAll('.message');
+            messageElements.forEach(el => el.remove());
+
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${msg.sender === getCurrentUserId() ? 'sent' : 'received'}`;
+
+                messageElement.innerHTML = `
+                    <div>${msg.content}</div>
+                    <div class="message-time">${formatTime(msg.created_at)}</div>
+                `;
+
+                container.insertBefore(messageElement, typingIndicator);
+            });
+
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+
+            if (!content || !currentChatUser || !socket) return;
+
+            // Send via socket for real-time delivery
+            socket.emit('send_message', {
+                to: currentChatUser.id,
+                message: content
+            });
+
+            input.value = '';
+        }
+
+        function connectSocket() {
+            if (socket) socket.disconnect();
+
+            socket = io('http://localhost:4000', {
+                auth: { token: token }
+            });
+
+            socket.on('connect', () => {
+                console.log('Connected to socket server');
+            });
+
+            socket.on('message', (message) => {
+                if (message.sender === currentChatUser.id || message.receiver === currentChatUser.id) {
+                    loadMessages(currentChatUser.id);
+                }
+                loadConversations(); // Refresh conversation list
+            });
+
+            socket.on('typing', (data) => {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (data.userId === currentChatUser.id && data.isTyping) {
+                    typingIndicator.style.display = 'block';
+                } else {
+                    typingIndicator.style.display = 'none';
+                }
+            });
+
+            socket.on('message_error', (error) => {
+                console.error('Message error:', error);
+                alert('Failed to send message. Please try again.');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from socket server');
+            });
+        }
+
+        function getCurrentUserId() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            return user.id;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Handle enter key in message input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement.id === 'message-input') {
+                sendMessage();
+            }
+        });
+
+        // Handle typing indicators
+        let typingTimeout;
+        document.getElementById('message-input').addEventListener('input', () => {
+            if (socket && currentChatUser) {
+                socket.emit('typing', {
+                    userId: currentChatUser.id,
+                    isTyping: true
+                });
+
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('typing', {
+                        userId: currentChatUser.id,
+                        isTyping: false
+                    });
+                }, 1000);
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.add(savedTheme);
+
+            loadConversations();
+        });
+    </script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</body>
+</html>

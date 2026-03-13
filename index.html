@@ -31,7 +31,29 @@
             <h1>QuickMatch</h1>
             <p class="tagline">Find Your Perfect Match Today</p>
             <p style="color: #f0f0f0; margin-bottom: 2rem; font-size: 1.1rem;">The modern way to connect with people nearby</p>
-            <a href="register.html" class="btn btn-primary">Connect with Partner</a>
+
+            <!-- Login Form -->
+            <div class="login-section" id="login-section">
+                <h2>Welcome Back!</h2>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="login-password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <p id="login-error" style="color: #ff6b6b; margin-top: 1rem; display: none;"></p>
+                </form>
+                <div class="auth-links">
+                    <a href="register.html">Don't have an account? Register</a>
+                </div>
+            </div>
+
+            <div class="hero-actions" id="hero-actions" style="display: none;">
+                <a href="dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+                <a href="discover.html" class="btn btn-secondary">Start Discovering</a>
+            </div>
         </div>
     </div>
 
@@ -81,10 +103,73 @@
             menu.classList.toggle('show');
         }
 
+        // Check if user is already logged in
+        function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const loginSection = document.getElementById('login-section');
+            const heroActions = document.getElementById('hero-actions');
+
+            if (token) {
+                // User is logged in, show dashboard actions
+                loginSection.style.display = 'none';
+                heroActions.style.display = 'flex';
+            } else {
+                // User is not logged in, show login form
+                loginSection.style.display = 'block';
+                heroActions.style.display = 'none';
+            }
+        }
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+
+            // Clear previous error
+            errorElement.style.display = 'none';
+
+            try {
+                const response = await fetch('http://localhost:3001/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Login successful
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user || {}));
+
+                    // Check if admin
+                    if (data.user && data.user.admin) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    // Login failed
+                    errorElement.textContent = data.error || 'Login failed';
+                    errorElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorElement.textContent = 'Network error. Please try again.';
+                errorElement.style.display = 'block';
+            }
+        });
+
         // Load theme on page load
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.body.classList.add(savedTheme);
+            checkAuthStatus();
         });
     </script>
 <script>

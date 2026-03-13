@@ -18,36 +18,108 @@ A full-stack scalable dating platform starter.
 - Docker deployment
 - GitHub-ready
 
+## Recent Fixes
+- ✅ Fixed oversized photo upload (5MB limit, image validation)
+- ✅ Improved admin registration form design
+- ✅ Fixed login after registration flow
+- ✅ Added network error handling for admin registration
+- ✅ Created missing uploads directory
+- ✅ Added database initialization script
+- ✅ Created complete user dashboard, discover, chat, and profile pages
+- ✅ Added real-time messaging with Socket.io
+- ✅ Implemented swipe matching system
+- ✅ Added login form to homepage
+- ✅ Created comprehensive API endpoints
+
 ## Run locally
 
-Start infrastructure
-```
+### 1. Start infrastructure
+```bash
 docker compose up -d
 ```
 
-Start API
-```
+### 2. Initialize database
+```bash
 cd api-server
 npm install
+npm run init-db
+```
+
+### 3. Start API
+```bash
+cd api-server
 npm run dev
 ```
 
-Start socket server
-```
+### 4. Start socket server
+```bash
 cd socket-server
 npm install
 npm run dev
 ```
 
-Start frontend
-```
+### 5. Start frontend
+```bash
 cd client
 npm install
 npm run dev
 ```
 
+### 6. Test server
+```bash
+node test-server.js
+```
+
 Open:
-http://localhost:3000
+- **Homepage/Login**: http://localhost:3000/index.html
+- **User Registration**: http://localhost:3000/register.html
+- **User Dashboard**: http://localhost:3000/dashboard.html (after login)
+- **Discover**: http://localhost:3000/discover.html
+- **Messages**: http://localhost:3000/chat.html
+- **Profile**: http://localhost:3000/profile.html
+- **Admin Registration**: http://localhost:3000/admin-register.html
+- **Admin Panel**: http://localhost:3000/admin.html
+
+## Features Overview
+
+### For Users:
+- **Dashboard**: View stats, recent activity, quick actions
+- **Discover**: Swipe through profiles, like/pass users
+- **Chat**: Real-time messaging with matches
+- **Profile**: View and edit personal information
+- **VIP**: Premium features and upgrades
+
+### For Admins:
+- **User Management**: View, edit, delete users
+- **Content Moderation**: Monitor posts and messages
+- **Statistics**: View platform analytics
+- **System Administration**: Manage the platform
+
+## Database Schema
+The system includes these tables:
+- `users` - User accounts and profiles
+- `profiles` - Extended user information
+- `matches` - User connections
+- `messages` - Chat messages
+- `swipes` - Like/pass actions
+- `posts` - User posts
+- `profile_views` - Profile view tracking
+- `payments` - Payment transactions
+
+## Troubleshooting
+
+### Admin Registration Issues
+- **Network error**: Ensure API server is running on port 3001
+- **Oversized photo**: Images must be under 5MB and valid image format
+- **Login not working**: Check browser console for errors, ensure database is initialized
+
+### Database Issues
+- **Connection failed**: Run `docker compose up -d` or setup local PostgreSQL
+- **Schema not loaded**: Run `cd api-server && npm run init-db`
+
+### Server Issues
+- **Port conflict**: Check if port 3001 is available
+- **Dependencies**: Run `npm install` in each service directory
 
 ---
 

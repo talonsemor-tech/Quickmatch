@@ -42,19 +42,65 @@ io.on("connection",(socket)=>{
   socket.join(user)
  })
 
- socket.on("send_message",async(data)=>{
-  // store message in DB for history
-  try{
-    await pool.query(
-      "INSERT INTO messages(sender,receiver,content,type) VALUES($1,$2,$3,$4)",
-      [socket.userId,data.to === 'global' ? null : data.to, data.text || data, 'text']
-    )
-  }catch(e){
-    console.error('msg store error',e)
-  }
-  // ensure data.to is string
-  io.to(data.to.toString()).emit("receive_message",data)
+io.on("connection",(socket)=>{
+
+ console.log("user connected",socket.id, socket.userId)
+ // automatically join personal room
+ if(socket.userId) socket.join(socket.userId.toString())
+
+ socket.on("join",(user)=>{
+  socket.join(user)
  })
+
+ socket.on("send_message",async(data)=>{
+  try{
+    // Store message in DB
+    const result = await pool.query(
+      "INSERT INTO messages(sender,receiver,content,type) VALUES($1,$2,$3,$4) RETURNING *",
+      [socket.userId, data.to, data.message, 'text']
+    )
+
+    const message = result.rows[0];
+
+    // Send to recipient
+    io.to(data.to.toString()).emit("message", {
+      id: message.id,
+      sender: message.sender,
+      receiver: message.receiver,
+      content: message.content,
+      type: message.type,
+      created_at: message.created_at
+    });
+
+    // Also send back to sender for confirmation
+    socket.emit("message", {
+      id: message.id,
+      sender: message.sender,
+      receiver: message.receiver,
+      content: message.content,
+      type: message.type,
+      created_at: message.created_at
+    });
+
+  }catch(e){
+    console.error('Message store error:', e);
+    socket.emit("message_error", { error: "Failed to send message" });
+  }
+ });
+
+ socket.on("typing", (data) => {
+  // Broadcast typing status to the other user
+  socket.to(data.userId.toString()).emit("typing", {
+   userId: socket.userId,
+   isTyping: data.isTyping
+  });
+ });
+
+ socket.on("disconnect",()=>{
+  console.log("user disconnected", socket.userId)
+ })
+
+})
 
  socket.on("disconnect",()=>{
   console.log("user disconnected", socket.userId)
