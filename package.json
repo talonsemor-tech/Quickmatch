@@ -1,0 +1,8 @@
+{
+  "name": "quickmatch-connect-ultra",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/start-all.js",
+    "test-server": "node test-server.js"
+  }
+}
